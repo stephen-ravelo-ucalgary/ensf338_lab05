@@ -48,6 +48,22 @@ expression = expression.replace(")", "")
 split_exp = expression.split()
 
 for i in split_exp[:: -1]:
-    print(i)
+    if len(i) > 1:
+        stk.push(int(i))
+    elif i.isdigit():
+        stk.push(int(i))
+    else:
+        num1 = stk.pop()
+        num2 = stk.pop()
 
-# 
+        if i == '+':
+            stk.push(int(num1 + num2))
+        elif i == '-':
+            stk.push(int(num1 - num2))
+        elif i == '/':
+            stk.push(int(num1 / num2))
+        elif i == '*':
+            stk.push(int(num1 * num2))
+
+# Print result
+print(stk.peek())
