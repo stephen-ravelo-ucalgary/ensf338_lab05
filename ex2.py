@@ -15,7 +15,7 @@ class ArrayPriorityQueueMergeSort:
         return self.head == -1
 
     def is_full(self):
-        return (self.tail + 1) % self.capacity == self.head
+        return self.tail + 1 == self.capacity
 
     def enqueue(self, item):
         if self.is_full():
@@ -25,10 +25,9 @@ class ArrayPriorityQueueMergeSort:
             self.head = 0
             self.tail = 0
         else:
-            self.tail = (self.tail + 1) % self.capacity
+            self.tail += 1
         self.queue[self.tail] = item
         merge_sort(self.queue, self.head, self.tail)
-        self.head = 0
 
     def dequeue(self):
         if self.is_empty():
@@ -39,7 +38,7 @@ class ArrayPriorityQueueMergeSort:
             self.head = -1
             self.tail = -1
         else:
-            self.head = (self.head + 1) % self.capacity
+            self.head += 1
         return item
 
     def peek(self):
@@ -54,7 +53,7 @@ class ArrayPriorityQueueMergeSort:
                 self.enqueue(task[1])
             else:
                 self.dequeue()
-    
+
 class ArrayPriorityQueueSortedInsertion:
     def __init__(self, capacity):
         self.capacity = capacity
@@ -66,21 +65,27 @@ class ArrayPriorityQueueSortedInsertion:
         return self.head == -1
 
     def is_full(self):
-        return (self.tail + 1) % self.capacity == self.head
+        return self.tail + 1 == self.capacity
 
     def enqueue(self, item):
-        cur = self.tail
         if self.is_full():
             #print("Queue is full. Unable to enqueue item.")
             return
         elif self.is_empty():
             self.head = 0
             self.tail = 0
+            self.queue[self.tail] = item
         else:
-            while (self.queue[cur] != None and self.queue[cur] > item and cur != self.head):
-                cur -= 1
-            self.tail = (self.tail + 1) % self.capacity
-        self.queue.insert(cur, item)
+            cur = self.head
+            while(cur <= self.tail and item > self.queue[cur]):
+                cur += 1
+
+            self.tail += 1
+
+            for i in range(self.tail, cur - 1, -1):
+                self.queue[i] = self.queue[i - 1]
+
+            self.queue[cur] = item
 
     def dequeue(self):
         if self.is_empty():
@@ -91,7 +96,7 @@ class ArrayPriorityQueueSortedInsertion:
             self.head = -1
             self.tail = -1
         else:
-            self.head = (self.head + 1) % self.capacity
+            self.head += 1
         return item
 
     def peek(self):
@@ -160,19 +165,26 @@ def generate_tasks(num):
     return tasks
 
 if __name__ == "__main__":
-    DEBUG = True
+    DEBUG = False
 
 
     if (DEBUG):
         tasks = generate_tasks(1000)
+        capacity = 1000
 
-        mergeQueue = ArrayPriorityQueueMergeSort(1000)
+        mergeQueue = ArrayPriorityQueueMergeSort(capacity)
         mergeQueue.execute_tasks(tasks)
-        print(mergeQueue.queue, "\n\n")
+        print(mergeQueue.queue)
+        print(len(mergeQueue.queue))
+        print(mergeQueue.head, mergeQueue.queue[mergeQueue.head])
+        print(mergeQueue.tail, mergeQueue.queue[mergeQueue.tail], "\n\n")
 
-        insertionQueue = ArrayPriorityQueueSortedInsertion(1000)
+        insertionQueue = ArrayPriorityQueueSortedInsertion(capacity)
         insertionQueue.execute_tasks(tasks)
         print(insertionQueue.queue)
+        print(len(insertionQueue.queue))
+        print(insertionQueue.head, insertionQueue.queue[insertionQueue.head])
+        print(insertionQueue.tail, insertionQueue.queue[insertionQueue.tail])
     else:
         num_tasks = 1000
 
@@ -184,10 +196,10 @@ if __name__ == "__main__":
             mergeQueue = ArrayPriorityQueueMergeSort(1000)
             insertionQueue = ArrayPriorityQueueSortedInsertion(1000)
             mergeQueueTime = timeit.timeit(lambda: mergeQueue.execute_tasks(tasks), number=1)
-            mergeQueueAverage = mergeQueueTime * 10
+            mergeQueueAverage = mergeQueueTime * 1000
             mergeQueueAverages.append(mergeQueueAverage)
             insertionQueueTime = timeit.timeit(lambda: insertionQueue.execute_tasks(tasks), number=1)
-            insertionQueueAverage = insertionQueueTime * 10
+            insertionQueueAverage = insertionQueueTime * 1000
             insertionQueueAverages.append(insertionQueueTime)
             df_data = np.array([[mergeQueueAverage, insertionQueueAverage]])
             df = pd.DataFrame(df_data, columns=['priority queue with merge sort (ms)', 'priority queue with sorting on insertion (ms)'])
@@ -195,7 +207,6 @@ if __name__ == "__main__":
 
 
         print("Overall results:")
-
         df_data = np.array([[sum(mergeQueueAverages) / len(mergeQueueAverages), sum(insertionQueueAverages) / len(insertionQueueAverages)]])
         df = pd.DataFrame(df_data, columns=['priority queue with merge sort (ms)', 'priority queue with sorting on insertion (ms)'])
         print(df.to_string(index=False))
@@ -203,10 +214,11 @@ if __name__ == "__main__":
 '''
 Question 5
 
-By inserting the element in its appropriate location, our worst cast will only be
-O(N) when having to insert at the beginning of the array.
+By inserting the element in its appropriate location, we have to iterate through the array
+once each time. This is because we first traverse until the correct spot is found, and then
+shift the rest of the elements right. So the complexity is O(n).
 
 By running merge sort every enqueue, the worst case each task is O(nlogn).
 
-Therefor inserting elements at their appropriate location is much faster.
+Thus, inserting elements at their appropriate location is much faster.
 '''
