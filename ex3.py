@@ -24,10 +24,10 @@ class MyArrayStack:
         else:
             return self._storage[-1]
     
-    def doTasks(self, num):
-        for i in range(num):
-            if (random.random() <= 0.7):
-                self.push(random.randrange(num))
+    def doTasks(self, tasks):
+        for task in tasks:
+            if task[0] == 0:
+                self.push(task[1])
             else:
                 self.pop()
         
@@ -73,13 +73,22 @@ class MyListStack:
             return None
         else:
             return self._head.getData()
-        
-    def doTasks(self, num):
-        for i in range(num):
-            if (random.random() <= 0.7):
-                self.push(random.randrange(num))
+    
+    def doTasks(self, tasks):
+        for task in tasks:
+            if task[0] == 0:
+                self.push(task[1])
             else:
                 self.pop()
+            
+def generate_tasks(num):
+    tasks = []
+    for i in range(num):
+        if random.random() <= 0.7:
+            tasks.append([0, random.randrange(1000)])
+        else:
+            tasks.append([1])
+    return tasks
 
 if __name__ == "__main__":
     numTasks = 10000
@@ -93,10 +102,12 @@ if __name__ == "__main__":
         arrayStack = MyArrayStack()
         listStack = MyListStack()
         
-        arrayTime = timeit.timeit(lambda: arrayStack.doTasks(numTasks), number=numTimeit)
+        tasks = generate_tasks(numTasks)
+        
+        arrayTime = timeit.timeit(lambda: arrayStack.doTasks(tasks), number=numTimeit)
         arrayAverage = arrayTime * 1000 / numTimeit
         arrayAverages.append(arrayAverage)
-        listTime = timeit.timeit(lambda: listStack.doTasks(numTasks), number=numTimeit)
+        listTime = timeit.timeit(lambda: listStack.doTasks(tasks), number=numTimeit)
         listAverage = listTime * 1000 / numTimeit
         listAverages.append(listAverage)
         
@@ -104,7 +115,7 @@ if __name__ == "__main__":
         df = pd.DataFrame(df_data, columns=['array stack (ms)', 'list stack (ms)'])
         print(df.to_string(index=False))
     
-    print("Overall results:")
+    print("\nOverall results:")
     df_data = np.array([[sum(arrayAverages)/len(arrayAverages), sum(listAverages)/len(arrayAverages)]])
     df = pd.DataFrame(df_data, columns=['array stack (ms)', 'list stack (ms)'])
     print(df.to_string(index=False))
